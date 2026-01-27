@@ -3,7 +3,7 @@ from Timer import Timer
 
 
 class Game:
-    def __init__(self, get_next_shape):
+    def __init__(self, get_next_shape, update_score):
         
         # general
         self.surface = pygame.Surface((GAME_WIDTH,GAME_HEIGHT)) # Game surface
@@ -11,6 +11,16 @@ class Game:
         self.rect = self.surface.get_rect(topleft = (PADDING,PADDING))
         self.sprites = pygame.sprite.Group()
         self.get_next_shape = get_next_shape
+        self.update_score = update_score
+        
+        # Game state
+        self.is_game_over = False
+        self.is_paused = False
+
+        # Score
+        self.current_level = 1
+        self.current_score = 0
+        self.current_lines = 0
 
         # Line surface to set alpha value
         self.line_surface = self.surface.copy()
@@ -36,6 +46,15 @@ class Game:
         self.Timers['vertical move'].activate()
         self.Timers['horizontal move'].activate()
 
+    def calculate_score(self, num_lines):
+       
+        self.current_lines += num_lines
+        self.current_score += SCORE_DATA.get(num_lines, DEFAULT_SCORE) * self.current_level
+        self.current_level = self.current_lines // 10 + 1
+        self.down_speed = UPDATE_START_SPEED * 1/(self.current_level)
+        self.down_speed_faster = self.down_speed * 0.3
+        self.update_score(self.current_score, self.current_level, self.current_lines)
+
     def create_new_tetromino(self, fix_previous):
         
         
@@ -56,6 +75,10 @@ class Game:
             self.create_new_tetromino,
             self.data)
         
+        # Check losing condition
+        if self.tetromino.next_move_vertical_collide(0):
+            self.is_game_over = True
+    
     def timer_update(self):
         for timer in self.Timers.values():
             timer.update()
@@ -113,15 +136,13 @@ class Game:
         if not self.down_pressed and keys[pygame.K_DOWN]:
             self.down_pressed = True
             self.Timers['vertical move'].duration = self.down_speed_faster
-            print('Pressing Down')
 
         if self.down_pressed and not keys[pygame.K_DOWN]:
             self.down_pressed = False
             self.Timers['vertical move'].duration = self.down_speed
-            print('Down released')
 
-            
-            
+        if keys[pygame.K_ESCAPE]:
+            self.is_paused = not self.is_paused
 
     def clear_data(self):
         
@@ -155,6 +176,18 @@ class Game:
                 x = int(x)
                 y = int(y)
                 self.data[y][x] = block
+        
+            # Update Score
+            self.calculate_score(len(delete_rows))
+    
+    def draw(self):
+        self.surface.fill(GAME_COLOR)
+        self.sprites.draw(self.surface) 
+
+        self.draw_grid()
+        self.display_surface.blit(self.surface, (PADDING,PADDING))
+        
+        pygame.draw.rect(self.display_surface, WHEAT, self.rect, 2, 2)
 
 
     def run(self):
@@ -165,15 +198,8 @@ class Game:
         # update
         self.timer_update()
         self.sprites.update()
-
-        self.surface.fill(GAME_COLOR)
-        self.sprites.draw(self.surface) 
-
-        self.draw_grid()
-        self.display_surface.blit(self.surface, (PADDING,PADDING))
         
-        pygame.draw.rect(self.display_surface, WHEAT, self.rect, 2, 2)
-
+        self.draw()
 
 class Tetromino:
     def __init__(self, shape, group, create_new_tetromino, grid):
