@@ -2,6 +2,10 @@ import cv2
 import mediapipe as mp
 import time
 import math
+import pyautogui
+
+pyautogui.PAUSE = 0
+PRESS_DURATION = 0.1
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 600)
@@ -166,21 +170,23 @@ def calculate_angle(hand_landmarks):
 
         delta_y = tip.y - wrist.y
         delta_x = tip.x - wrist.x
-
-        angle += math.degrees(math.atan2(delta_y,delta_x))
-
+        angle += math.degrees(math.atan2(-delta_y, delta_x))
     return angle / len(fingers)
 
+def press(key):
+    pyautogui.keyDown(key)
+    time.sleep(PRESS_DURATION) 
+    pyautogui.keyUp(key)
 
 
 # Track each landmark
-h_tracker = [HandMovementTracker() for i in range(21)]
+h_tracker = HandMovementTracker()
 h_rotation = RotationDetector()
 
 
 while True:
     success, frame = cap.read()
-
+    # frame = cv2.resize(frame, (640, 480))
     if success:
         
         frame = cv2.flip(frame, 1)
@@ -196,7 +202,6 @@ while True:
         hand_x_pos = None
 
         if result.multi_hand_landmarks:
-            directions = []
             for hand_landmarks in result.multi_hand_landmarks:
                 
                 rotated = h_rotation.detect(hand_landmarks)
@@ -205,19 +210,14 @@ while True:
                 if is_curled(hand_landmarks):
                     is_fist = True
 
-                for i in range(21):
-                   x = hand_landmarks.landmark[i].x
-                   directions.append(h_tracker[i].HorizontalMovement(x))
-
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             
-            x_positions = [hand_landmarks.landmark[i].x for i in range(21)]
+            hand_x_pos = hand_landmarks.landmark[0].x
+            dir = h_tracker.HorizontalMovement(hand_x_pos) 
 
-            hand_x_pos = hand_x(x_positions)
-
-            if all([dir == LEFT for dir in directions]):
+            if dir == LEFT:
                 direction_x = 'LEFT'
-            elif all(dir == RIGHT for dir in directions):
+            elif dir == RIGHT:
                 direction_x =  'RIGHT'
             else:
                 direction_x = 'NONE'
@@ -238,6 +238,14 @@ while True:
             f"Rotated? {rotated}"
         ]
         print_cv()
+
+        if is_fist:
+            if direction_x == 'LEFT':
+                press('left')
+            elif direction_x == 'RIGHT':
+                press('right')
+        elif rotated:
+                press('up')
 
         cv2.imshow("Hold My Line Piece", frame)
         

@@ -81,6 +81,8 @@ FONT = 'Russo_One.ttf'
 FONT_SIZE = 30
 BUTTON_FONT_SIZE = 20
 FONT_COLOR = WHEAT
+FONT_PATH = join('graphics',FONT)
+
 
 T_SHAPE_COLOR = PURPLE       # Standard purple
 O_SHAPE_COLOR = GOLD         # Bright yellow

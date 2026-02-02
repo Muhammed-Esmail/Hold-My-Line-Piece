@@ -69,7 +69,7 @@ class Main:
         self.dark_overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.dark_overlay.set_alpha(100)
         self.dark_overlay.fill((0,0,0))
-        self.font = pygame.font.Font(join('..','graphics',FONT), FONT_SIZE)
+        self.font = pygame.font.Font(FONT_PATH, FONT_SIZE)
     
 
         # New Game
@@ -99,7 +99,7 @@ class Main:
             color = GOLD if rect.collidepoint(pygame.mouse.get_pos()) else WHITE
             pygame.draw.rect(self.display_surface, color, rect, 2)
            
-            font = pygame.font.Font(join('..','graphics',FONT), BUTTON_FONT_SIZE)
+            font = pygame.font.Font(FONT_PATH, BUTTON_FONT_SIZE)
             
             btn_surf = font.render(text, True, color)
             btn_rect = btn_surf.get_rect(center = rect.center)
@@ -132,7 +132,7 @@ class Main:
             color = GOLD if rect.collidepoint(pygame.mouse.get_pos()) else WHITE
             pygame.draw.rect(self.display_surface, color, rect, 2)
            
-            font = pygame.font.Font(join('..','graphics',FONT), BUTTON_FONT_SIZE)
+            font = pygame.font.Font(FONT_PATH, BUTTON_FONT_SIZE)
             
             btn_surf = font.render(text, True, color)
             btn_rect = btn_surf.get_rect(center = rect.center)
