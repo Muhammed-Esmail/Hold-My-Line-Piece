@@ -14,7 +14,6 @@ class Preview:
     
         # shapes
         self.shape_surfaces = {shape : load(path.join(
-            '..',
             'graphics',
             f'{shape}.png')
             ).convert_alpha() for shape in TETROMINOES.keys()}
